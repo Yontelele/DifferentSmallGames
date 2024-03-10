@@ -1,0 +1,206 @@
+﻿@page "/"
+
+<PageTitle>Number Game</PageTitle>
+
+<h1 style="text-align: center" class="mb-3">Guess the Right Slot Game</h1>
+
+<p style="text-align: center">Welcome to the game! You have <b>3</b> attempts to guess the correct slot for each number between 1 and 5. 
+    Enter your guesses in the respective input fields and click the "Guess" button to check if they are correct. 
+    The game will provide feedback for each guess, and you can try up to <b>3</b> times to get all the numbers in the right slots.</p>
+
+<p style="text-align: center">If you successfully guess all the numbers within the given attempts, you win! Good luck!</p>
+
+
+<div class="input-container">
+    <input @bind="Number1" class="form-control form-control-lg mb-5 w-25 p-3" type="text" placeholder="Number 1" disabled="@Number1Correct">
+    @if (Number1Correct){<span class="badge rounded-pill bg-success check-mark">&#10003;</span>}
+    else { <span class="badge rounded-pill bg-danger cross-mark">&#10007;</span> }
+    @foreach (var number in TriedNumber1){if (!Number1Correct){<span class="badge rounded-pill bg-secondary ms-lg-4">@number</span>}}
+</div>
+
+<div class="input-container">
+    <input @bind="Number2" class="form-control form-control-lg mb-5 w-25 p-3" type="text" placeholder="Number 2" disabled="@Number2Correct">
+    @if (Number2Correct){<span class="badge rounded-pill bg-success check-mark">&#10003;</span>}
+    else { <span class="badge rounded-pill bg-danger cross-mark">&#10007;</span> }
+    @foreach (var number in TriedNumber2){if (!Number2Correct){<span class="badge rounded-pill bg-secondary ms-lg-4">@number</span> }}
+</div>
+
+<div class="input-container">
+    <input @bind="Number3" class="form-control form-control-lg mb-5 w-25 p-3" type="text" placeholder="Number 3" disabled="@Number3Correct">
+    @if (Number3Correct){<span class="badge rounded-pill bg-success check-mark">&#10003;</span>}
+    else { <span class="badge rounded-pill bg-danger cross-mark">&#10007;</span> }
+    @foreach (var number in TriedNumber3){if (!Number3Correct){<span class="badge rounded-pill bg-secondary ms-lg-4">@number</span>}}
+</div>
+
+<div class="input-container">
+    <input @bind="Number4" class="form-control form-control-lg mb-5 w-25 p-3" type="text" placeholder="Number 4" disabled="@Number4Correct">
+    @if (Number4Correct){<span class="badge rounded-pill bg-success check-mark">&#10003;</span>}
+    else { <span class="badge rounded-pill bg-danger cross-mark">&#10007;</span> }
+    @foreach (var number in TriedNumber4){if (!Number4Correct){<span class="badge rounded-pill bg-secondary ms-lg-4">@number</span>}}
+</div>
+
+<div class="input-container">
+    <input @bind="Number5" class="form-control form-control-lg mb-5 w-25 p-3" type="text" placeholder="Number 5" disabled="@Number5Correct">
+    @if (Number5Correct){<span class="badge rounded-pill bg-success check-mark">&#10003;</span>}
+    else { <span class="badge rounded-pill bg-danger cross-mark">&#10007;</span> }
+    @foreach (var number in TriedNumber5){if (!Number5Correct){<span class="badge rounded-pill bg-secondary ms-lg-4">@number</span>}}
+</div>
+
+<button type="button" class="btn btn-secondary mb-2" @onclick="Guess" disabled="@DisableGame">Guess</button>
+
+<br />
+
+@if (DisableGame)
+{
+    <div class="text-start">
+        <button type="button" class="btn btn-success" @onclick="PlayAgain">Play Again</button>
+    </div>
+}
+
+@if (AllNumbersCorrect)
+{
+    <p>
+        <b style="color: limegreen">You Won!</b> <br />
+        Number of guesses: @guesses
+    </p>
+}
+
+@if (guesses == 3 && !AllNumbersCorrect)
+{
+    <p>
+        <b style="color: red">You Lost!</b> <br />
+        Number of guesses: @guesses <br />
+
+        The correct numbers where:
+
+        <ul class="mt-3">
+            @foreach (var number in play.ShuffledNumbers)
+            {
+                <li class="mt-2 badge rounded-pill bg-success" style="font-size: 2rem">@number</li>
+            }
+        </ul>
+    </p>
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    h2 {
+        color: #007bff;
+        text-align: center;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.5;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    ul{
+        list-style: none;
+    }
+
+    .container {
+        max-width: 600px;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        font-size: 1.5em;
+        margin-left: 20px;
+        margin-top: -45px;
+    }
+</style>
+
+@code{
+    Play play = new();
+
+    List<int> TriedNumber1 = new();
+    List<int> TriedNumber2 = new();
+    List<int> TriedNumber3 = new();
+    List<int> TriedNumber4 = new();
+    List<int> TriedNumber5 = new();
+
+    bool DisableGame;
+    bool AllNumbersCorrect;
+
+    int guesses;
+
+    int Number1;
+    int Number2;
+    int Number3;
+    int Number4;
+    int Number5;
+
+    bool Number1Correct;
+    bool Number2Correct;
+    bool Number3Correct;
+    bool Number4Correct;
+    bool Number5Correct;
+
+    void Guess()
+    {
+        Number1Correct = Number1 == play.ShuffledNumbers[0];
+        Number2Correct = Number2 == play.ShuffledNumbers[1];
+        Number3Correct = Number3 == play.ShuffledNumbers[2];
+        Number4Correct = Number4 == play.ShuffledNumbers[3];
+        Number5Correct = Number5 == play.ShuffledNumbers[4];
+
+        TriedNumber1.Add(Number1);
+        TriedNumber2.Add(Number2);
+        TriedNumber3.Add(Number3);
+        TriedNumber4.Add(Number4);
+        TriedNumber5.Add(Number5);
+
+        guesses++;
+
+        AllNumbersCorrect = Number1Correct && Number2Correct && Number3Correct && Number4Correct && Number5Correct;
+
+        DisableGame = guesses >= 3 || AllNumbersCorrect;
+    }
+
+    void PlayAgain()
+    {
+        DisableGame = false;
+        AllNumbersCorrect = false;
+        guesses = 0;
+        Number1 = Number2 = Number3 = Number4 = Number5 = 0;
+        Number1Correct = Number2Correct = Number3Correct = Number4Correct = Number5Correct = false;
+        TriedNumber1.Clear();
+        TriedNumber2.Clear();
+        TriedNumber3.Clear();
+        TriedNumber4.Clear();
+        TriedNumber5.Clear();
+
+        play = new Play();
+    }
+
+    public class Play
+    {
+        Random rnd = new Random();
+
+        public int[] ShuffledNumbers { get; }
+
+        public Play()
+        {
+            int[] n = { 1, 2, 3, 4, 5 };
+
+            ShuffledNumbers = n.OrderBy(x => rnd.Next()).ToArray();
+        }
+    }
+}
