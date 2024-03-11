@@ -1,0 +1,169 @@
+﻿@page "/hangman"
+
+<div class="headrs">
+
+    <h1 style="text-align: center" class="mb-3">Hangman</h1>
+
+    <p>Welcome to Hangman! You've got <b>6</b> attempts to uncover the hidden word. <br />
+        Type a letter, hit "Guess," and the game will reveal whether your choice is part of the mystery word. Good luck!
+    </p>
+
+    <h3>The hidden word has @letterCount letters.</h3>
+</div>
+
+<div style="margin-top: 80px; margin-bottom: 50px" class="lettrs">
+    @if (loading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        @for (int i = 0; i < letterCount; i++)
+        {
+            <span style="display: inline-block; margin: 0 20px; border-bottom: 4px solid black; width: 50px; text-align: center; position: relative">
+                @if (guessedPosition != null && i < guessedPosition.Length && guessedPosition[i])
+                {
+                    <span style="position: absolute; margin-left: -12px; bottom: 5px; font-weight: bold; font-size: 2rem; color: seagreen">@hiddenWord[i].ToString().ToUpper()</span>
+                }
+            </span>
+        }
+    }
+
+</div>
+
+<div class="footr">
+    <input @bind="guessLetter" class="form-control form-control-lg mb-3 w-25 p-3 mt-5" type="text" placeholder="Type a letter">
+
+    <button class="btn btn-secondary" @onclick="Play" disabled="@DisableGame">Guess</button>
+</div>
+
+
+@if (correctGuess)
+{
+    <p>The letter exists in the word. You have @(6 - guesses) guesses left.</p>
+}
+else if (guesses > 0)
+{
+    <p>The letter does not exist in the word. You have <b>@(6 - guesses)</b> guesses left.</p>
+}
+
+@if (guessedPosition != null && guessedPosition.All(x => x))
+{
+    <p style="color: limegreen">You won!</p>
+}
+
+
+@if (LoseGame)
+{
+    <p style="color: red">You lost!</p>
+    <p>The correct word was: @hiddenWord</p>
+}
+
+<style>
+    .headrs {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+
+    body{
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .lettrs{
+        display: flex;
+        justify-content: center;
+    }
+
+    .footr {
+        position: fixed;
+        bottom: 5%;
+        left: 54.5%;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.5;
+        text-align: center;
+        margin-top: 5px;
+    }
+</style>
+
+@code{
+    bool loading = true;
+
+    int letterCount;
+    int guesses = 0;
+
+    string hiddenWord;
+    char guessLetter;
+
+    bool[] guessedPosition;
+    bool correctGuess;
+    bool DisableGame;
+    bool AllNumbersCorrect;
+    bool LoseGame;
+
+    void Play()
+    {
+        if (guessedPosition == null)
+        {
+            guessedPosition = new bool[hiddenWord.Length];
+        }
+
+        correctGuess = false;
+
+        for (int i = 0; i < hiddenWord.Length; i++)
+        {
+            if (hiddenWord[i] == guessLetter)
+            {
+                guessedPosition[i] = true;
+                correctGuess = true;
+            }
+        }
+
+        LoseGame = guesses >= 5 && !(guessedPosition.All(x => x));
+        AllNumbersCorrect = guessedPosition.All(x => x);
+        DisableGame = LoseGame || AllNumbersCorrect;
+
+        if(!correctGuess)
+        {
+            guesses++;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string rawFileUrl = "https://raw.githubusercontent.com/martinlindhe/wordlist_swedish/master/swe_wordlist";
+
+        string[] words = await GetWordsFromRawFile(rawFileUrl);
+
+        if (words != null && words.Length > 0)
+        {
+            Random rnd = new Random();
+            do
+            {
+                hiddenWord = words[rnd.Next(words.Length)];
+                letterCount = hiddenWord.Count(char.IsLetter);
+                loading = false;
+            }
+            while(letterCount < 3 || letterCount > 8);
+        }
+    }
+
+    async Task<string[]> GetWordsFromRawFile(string url)
+    {
+        using (HttpClient client = new HttpClient())
+        {
+            string content = await client.GetStringAsync(url);
+
+            string[] words = content.Split(new[] { '\n', '\r', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return words;
+        }
+    }
+}
