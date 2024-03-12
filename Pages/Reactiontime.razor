@@ -1,0 +1,145 @@
+﻿@page "/reactiontime"
+@using System.Diagnostics;
+
+
+<h1 style="text-align: center">Reaction Time Test</h1>
+
+<div class="bigcolorsquare mt-5" style="background-color: @squareColor">
+    @if (isStarted)
+    {
+        <h3 style="color: black">Click the button when I turn green...</h3>
+    }
+
+    else if (cheating)
+    {
+        <h3 style="color: black">You pressed before green, your attempt is aborted. <br /> --->  Press the "START" button to start the game </h3>
+    }
+
+    else
+    {
+        <h3 style="color: black">Press the "START" button to start the game</h3>
+    }
+</div>
+
+<div class="button-container">
+    <button type="button" class="btn btn-lg btn-primary" @onclick="Play" disabled="@(!isStarted)">Click Me</button>
+    <button type="button" class="btn btn-lg btn-success" @onclick="Start" disabled="@isStarted">Start</button>
+</div>
+
+
+<div style="text-align: center; margin-top: 20px">
+    @if (reactionTime > 0)
+    {
+        <h3>Your reaction time: @reactionTime ms</h3>
+    }
+</div>
+
+<div style="text-align: center; margin-top: 100px">
+    @if (reactionTimes.Count > 0)
+    {
+        <h3>Your reaction times:</h3>
+        <ul>
+            @foreach (var time in reactionTimes)
+            {
+                <li>@time ms</li>
+            }
+        </ul>
+    }
+</div>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .bigcolorsquare {
+        height: 400px;
+        width: 1100px;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        margin: auto;
+        border: 2px solid black;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        
+    }
+
+    .btn{
+        margin: 0 10px;
+    }
+
+    ul{
+       list-style: none;
+    }
+</style>
+
+@code {
+
+    bool isStarted = false;
+    string squareColor = "beige";
+    int startTime;
+    int reactionTime = 0;
+    bool cheating = false;
+    List<int> reactionTimes = new List<int>();
+
+    ReactionTime reactionTimer = new ReactionTime();
+
+    Stopwatch stopwatch = new Stopwatch();
+
+    async Task Play()
+    {
+        if (squareColor == "green")
+        {
+            stopwatch.Stop();
+            reactionTime = (int)stopwatch.ElapsedMilliseconds;
+            reactionTimes.Add(reactionTime);
+            isStarted = false;
+        }
+
+        else
+        {
+            Cheating();
+        }
+    }
+
+    async Task Start()
+    {
+        cheating = false;
+        reactionTime = 0;
+        isStarted = true;
+        squareColor = "red";
+        stopwatch.Reset();
+        await Task.Delay(reactionTimer.GiveRandomTime());
+
+        if (!cheating)
+        {
+            stopwatch.Start();
+            squareColor = "green";
+        }
+    }
+
+    async Task Cheating()
+    {
+        cheating = true;
+        stopwatch.Stop();
+        reactionTime = 0;
+        isStarted = false;
+        squareColor = "beige";
+    }
+
+    public class ReactionTime
+    {
+        public int GiveRandomTime()
+        {
+            Random random = new Random();
+            int time = random.Next(500, 7000);
+            return time;
+        }
+    }
+}
